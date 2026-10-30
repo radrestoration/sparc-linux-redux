@@ -1,0 +1,18 @@
+# build products and downloads (rebuilt by tools/build-*.sh)
+/build/
+
+# personal settings (passwords, addresses, user name); see config/defaults.conf
+/config/local.conf
+
+# stray logs and editor/backup files
+wget-log*
+*.log
+*.bak
+*~
+*.swp
+*.tar
+*.tar.zst
+.DS_Store
+
+# output of tools/screenshot.sh (cde-desktop.png is the README picture)
+/screenshots/shot-*

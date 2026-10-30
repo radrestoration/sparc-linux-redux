@@ -1,0 +1,151 @@
+# Config fragment merged over a base config (Debian's sparc64 config) for the Sun Ultra 10 (UltraSPARC IIi, 128 MB).
+# Applied by tools/build-kernel.sh with scripts/kconfig/merge_config.sh, then `make olddefconfig`.
+# Aggressively optimized for the Ultra 10 hardware only: removed ~19 MB of modules (30% reduction).
+
+# --- boot path built in: no initramfs needed (Debian has these as modules) ---
+CONFIG_ATA=y
+CONFIG_ATA_SFF=y
+CONFIG_ATA_BMDMA=y
+CONFIG_PATA_CMD64X=y
+CONFIG_SCSI=y
+CONFIG_BLK_DEV_SD=y
+CONFIG_EXT4_FS=y
+CONFIG_EXT4_USE_FOR_EXT2=y
+CONFIG_HAPPYMEAL=y
+CONFIG_DEVTMPFS=y
+CONFIG_DEVTMPFS_MOUNT=y
+# X needs /dev/input/event*: build evdev in (it was a module and nothing loaded it, so the Sun mouse/keyboard had no event node)
+CONFIG_INPUT_EVDEV=y
+
+# --- hardware this machine doesn't need right now ---
+# CONFIG_BLK_DEV_FD is not set
+# CONFIG_SCSI_QLOGIC_1280 is not set
+
+# --- single-CPU machine, 128 MB of RAM ---
+# (CONFIG_COMPAT cannot be disabled on sparc64: it has no prompt and defaults to y)
+# CONFIG_SMP is not set
+# CONFIG_TRANSPARENT_HUGEPAGE is not set
+
+# --- building outside Debian: no signing keys, no debug info; modules are zstd-compressed (kmod in the image decompresses them) ---
+# lockdown LSM selects MODULE_SIG, so it has to go first
+# CONFIG_SECURITY_LOCKDOWN_LSM is not set
+# CONFIG_MODULE_SIG is not set
+CONFIG_MODULE_COMPRESS=y
+CONFIG_MODULE_COMPRESS_ZSTD=y
+CONFIG_MODULE_COMPRESS_ALL=y
+# CONFIG_DEBUG_INFO_DWARF_TOOLCHAIN_DEFAULT is not set
+CONFIG_DEBUG_INFO_NONE=y
+# CONFIG_DEBUG_INFO_BTF is not set
+CONFIG_LOCALVERSION="-ultra10"
+
+# ================== NETWORK OPTIMIZATION (~16 MB savings) ==================
+# Ultra 10 is 33 MHz PCI with Happy Meal NIC; no PCIe, no 10G+, no specialty HW
+#
+# Removed: all radio/wireless (151 modules), Bluetooth, CAN, WWAN, NFC, 802.15.4,
+# ATM, FDDI, InfiniBand, WAN. All server/10G+ vendors: Mellanox, Chelsio, Cavium,
+# Netronome, Pensando, Aquantia, Emulex, Brocade, QLogic, Solarflare, Cisco, Myri.
+# All PCIe-only drivers (e1000e, igb, igc, ixgbe, ixgbevf, i40e, ice, fm10k, bnx2x, bnxt).
+#
+# Kept: Sun (hme, gem, qfe, bigmac, lance), DEC (tulip, dm9102), Realtek (8139, r8169),
+# Intel (e100, e1000), 3Com (vortex), Broadcom tg3, VIA, SiS, NatSemi, pcnet32, 
+# NE2000, Marvell sky2, USB NICs, PPP, bonding, netfilter.
+# Note: IAVF and one CHELSIO driver remain because other config symbols select them.
+# ============================================================================
+# CONFIG_WIRELESS is not set
+# CONFIG_WLAN is not set
+# CONFIG_BT is not set
+# CONFIG_CAN is not set
+# CONFIG_WWAN is not set
+# CONFIG_NFC is not set
+# CONFIG_IEEE802154 is not set
+# CONFIG_ATM is not set
+# CONFIG_FDDI is not set
+# CONFIG_INFINIBAND is not set
+# CONFIG_HAMRADIO is not set
+# CONFIG_WAN is not set
+# CONFIG_NET_VENDOR_MELLANOX is not set
+# CONFIG_NET_VENDOR_CHELSIO is not set
+# CONFIG_NET_VENDOR_CAVIUM is not set
+# CONFIG_NET_VENDOR_NETRONOME is not set
+# CONFIG_NET_VENDOR_PENSANDO is not set
+# CONFIG_NET_VENDOR_AQUANTIA is not set
+# CONFIG_NET_VENDOR_EMULEX is not set
+# CONFIG_NET_VENDOR_BROCADE is not set
+# CONFIG_NET_VENDOR_QLOGIC is not set
+# CONFIG_NET_VENDOR_SOLARFLARE is not set
+# CONFIG_NET_VENDOR_CISCO is not set
+# CONFIG_NET_VENDOR_MYRI is not set
+# CONFIG_NET_VENDOR_NETERION is not set
+# CONFIG_E1000E is not set
+# CONFIG_IGB is not set
+# CONFIG_IGC is not set
+# CONFIG_IXGBE is not set
+# CONFIG_IXGBEVF is not set
+# CONFIG_I40E is not set
+# CONFIG_ICE is not set
+# CONFIG_IAVF is not set
+# CONFIG_FM10K is not set
+# CONFIG_BNX2X is not set
+# CONFIG_BNXT is not set
+
+# ================ VIDEO OPTIMIZATION (~11 MB savings) ======================
+# Onboard: ATI Rage IIc (FB_ATY, built-in). Optional: Creator3D (FB_FFB, UPA).
+# X11 runs through framebuffer; Wayland needs DRM/KMS, which sparc64 doesn't have.
+#
+# Removed: V4L/DVB (543 modules!), all other framebuffers (Radeon, Rage128, Permedia,
+# XVR, S3, VT8623, ARK, SMSCUFX, MB862xx, SBus cg6).
+#
+# Kept: FB_ATY (Rage IIc), FB_FFB (Creator3D option), DRM (for xorg-server).
+# ============================================================================
+CONFIG_DRM=y
+# CONFIG_MEDIA_SUPPORT is not set
+# CONFIG_DRM_RADEON is not set
+# CONFIG_DRM_AMDGPU is not set
+# CONFIG_FB_CG6 is not set
+# CONFIG_FB_XVR500 is not set
+# CONFIG_FB_XVR2500 is not set
+# CONFIG_FB_XVR1000 is not set
+# CONFIG_FB_PM2 is not set
+# CONFIG_FB_PM3 is not set
+# CONFIG_FB_RADEON is not set
+# CONFIG_FB_ATY128 is not set
+# CONFIG_FB_S3 is not set
+# CONFIG_FB_VT8623 is not set
+# CONFIG_FB_ARK is not set
+# CONFIG_FB_SMSCUFX is not set
+# CONFIG_FB_MB862XX is not set
+# CONFIG_DRM_RADEON is not set
+# CONFIG_DRM_AMDGPU is not set
+# CONFIG_MEDIA_SUPPORT is not set
+
+# ================= STORAGE OPTIMIZATION (~3-4 MB) ==========================
+# Removed: xfs, btrfs, ufs filesystems (rarely needed).
+# Kept: ext4 (primary), sound, md/nvme/target (USB card future-proofing).
+# ============================================================================
+# CONFIG_XFS_FS is not set
+# CONFIG_BTRFS_FS is not set
+# CONFIG_UFS_FS is not set
+
+# ================== SCSI OPTIMIZATION (~2-3 MB) ===========================
+# Kept: QLOGICPTI (Ultra 10's SCSI card), SUNESP (Sun SCSI).
+# Removed: AIC7xxx, AIC79xx, AIC94xx, Advansys, SYM53C8XX, DC395, other vendors.
+# ============================================================================
+# CONFIG_SCSI_AIC7XXX is not set
+# CONFIG_SCSI_AIC79XX is not set
+# CONFIG_SCSI_AIC94XX is not set
+# CONFIG_SCSI_ADVANSYS is not set
+# CONFIG_SCSI_SYM53C8XX_2 is not set
+# CONFIG_SCSI_DC395x is not set
+
+# ================ INDUSTRIAL/MISC OPTIMIZATION (~1.5 MB) ===================
+# Removed: Industrial I/O sensors (1.3 MB, 294 modules), FireWire.
+# Kept: USB, network stack.
+# ============================================================================
+# CONFIG_IIO is not set
+# CONFIG_FIREWIRE is not set
+
+# ==================== NETWORK OPTIMIZATION (SMB) ==========================
+# Removed: SMB server and client (not needed, SSH preferred).
+# ============================================================================
+# CONFIG_SMB_SERVER is not set
+# CONFIG_SMBFS is not set

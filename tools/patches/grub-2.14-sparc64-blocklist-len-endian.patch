@@ -1,0 +1,50 @@
+--- a/util/setup.c	2026-10-18 15:10:03.674636237 -0400
++++ b/util/setup.c	2026-10-18 15:10:03.685754061 -0400
+@@ -78,6 +78,17 @@
+  * result.
+  */
+ 
++/* The blocklist length field is grub_uint16_t for BIOS but grub_uint32_t for sparc64
++   (struct grub_boot_blocklist); converting it as 16 bits breaks a cross-endian install
++   (little-endian host writing for a big-endian sparc64: the target reads len << 16). */
++#ifdef GRUB_SETUP_SPARC64
++#define BLOCKLIST_LEN_TO_HOST(x)	grub_be_to_cpu32(x)
++#define HOST_TO_BLOCKLIST_LEN(x)	grub_cpu_to_be32(x)
++#else
++#define BLOCKLIST_LEN_TO_HOST(x)	grub_target_to_host16(x)
++#define HOST_TO_BLOCKLIST_LEN(x)	grub_host_to_target16(x)
++#endif
++
+ #ifdef GRUB_SETUP_SPARC64
+ #define grub_target_to_host16(x)	grub_be_to_cpu16(x)
+ #define grub_target_to_host32(x)	grub_be_to_cpu32(x)
+@@ -180,16 +191,16 @@
+ 
+   if (bl->block != bl->first_block
+       && (grub_target_to_host64 (prev->start)
+-	  + grub_target_to_host16 (prev->len)) == sector)
++	  + BLOCKLIST_LEN_TO_HOST (prev->len)) == sector)
+     {
+-      grub_uint16_t t = grub_target_to_host16 (prev->len);
++      grub_uint32_t t = BLOCKLIST_LEN_TO_HOST (prev->len);
+       t += seclen;
+-      prev->len = grub_host_to_target16 (t);
++      prev->len = HOST_TO_BLOCKLIST_LEN (t);
+     }
+   else
+     {
+       bl->block->start = grub_host_to_target64 (sector);
+-      bl->block->len = grub_host_to_target16 (seclen);
++      bl->block->len = HOST_TO_BLOCKLIST_LEN (seclen);
+ #ifdef GRUB_SETUP_BIOS
+       bl->block->segment = grub_host_to_target16 (bl->current_segment);
+ #endif
+@@ -825,7 +836,7 @@
+     bl.block = bl.first_block;
+     while (bl.block->len)
+       {
+-	size_t cur = grub_target_to_host16 (bl.block->len) << GRUB_DISK_SECTOR_BITS;
++	size_t cur = BLOCKLIST_LEN_TO_HOST (bl.block->len) << GRUB_DISK_SECTOR_BITS;
+ 	blk = grub_target_to_host64 (bl.block->start);
+ 
+ 	if (cur > len)

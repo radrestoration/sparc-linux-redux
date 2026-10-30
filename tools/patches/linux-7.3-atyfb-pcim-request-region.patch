@@ -1,0 +1,45 @@
+fbdev: atyfb, aty128fb: pcim_request_region() returns 0 on success
+
+Commit 27c97be7f3 (fbdev: atyfb: Convert to managed PCI and ioremap API) and the
+matching aty128fb conversion test the result of pcim_request_region() as if it
+were a pointer/bool. It returns 0 on success and a negative errno on failure, so
+every successful request is treated as failure: atyfb_pci_probe() returns -EBUSY
+and the framebuffer never registers (blank console, "probe with driver atyfb
+failed with error -16"), and aty128fb fails the same way.
+
+Found on a Sun Ultra 10 (sparc64, onboard ATI Rage IIc), Linux 7.3.
+
+--- a/drivers/video/fbdev/aty/atyfb_base.c	2026-10-24 17:38:29.962913635 -0400
++++ b/drivers/video/fbdev/aty/atyfb_base.c	2026-10-24 17:38:29.990743441 -0400
+@@ -3549,8 +3549,10 @@
+ 	/* Reserve space */
+ 	res_start = rp->start;
+ 	res_size = resource_size(rp);
+-	if (!pcim_request_region(pdev, rp - pdev->resource, "atyfb"))
+-		return -EBUSY;
++	/* pcim_request_region() returns 0 on success, a negative errno on failure */
++	rc = pcim_request_region(pdev, rp - pdev->resource, "atyfb");
++	if (rc)
++		return rc;
+ 
+ 	/* Allocate framebuffer */
+ 	info = framebuffer_alloc(sizeof(struct atyfb_par), &pdev->dev);
+--- a/drivers/video/fbdev/aty/aty128fb.c	2026-10-24 17:38:29.976564215 -0400
++++ b/drivers/video/fbdev/aty/aty128fb.c	2026-10-24 17:38:29.991566959 -0400
+@@ -2017,14 +2017,14 @@
+ 	}
+ 
+ 	fb_addr = pci_resource_start(pdev, 0);
+-	if (!pcim_request_region(pdev, 0, "aty128fb FB")) {
++	if (pcim_request_region(pdev, 0, "aty128fb FB")) {
+ 		printk(KERN_ERR "aty128fb: cannot reserve frame "
+ 				"buffer memory\n");
+ 		return -ENODEV;
+ 	}
+ 
+ 	reg_addr = pci_resource_start(pdev, 2);
+-	if (!pcim_request_region(pdev, 2, "aty128fb MMIO")) {
++	if (pcim_request_region(pdev, 2, "aty128fb MMIO")) {
+ 		printk(KERN_ERR "aty128fb: cannot reserve MMIO region\n");
+ 		return -ENODEV;
+ 	}
