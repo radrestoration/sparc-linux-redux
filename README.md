@@ -1,7 +1,38 @@
 # Modern Linux for the Sun Ultra 10
 
+## Overview
+
 A scripted, repeatable way to put a lean, fully 64-bit Debian (sysvinit, no systemd) with a current kernel onto a
-Sun Ultra 10 (UltraSPARC IIi, ~128 MB RAM, CMD646 IDE, ATI Mach64 GP "Rage PRO", 4 MB VRAM). Everything is built on a PC; the Ultra only boots.
+Sun Ultra 5/10 (UltraSPARC IIi, ~128 MB RAM, CMD646 IDE, ATI Mach64 GP "Rage PRO", 4 MB VRAM). Everything is built on a 
+x86 Linux, the Ultra only boots.
+
+## Introduction
+
+I wanted to a way to bring a modern Linux to Sparc 64 hardware, in particular the Ultra Sparc64 I had picked up, but also provide 
+a retro, Solaris-like feel. 
+
+As always with Linux, there are multiple distros and ways to achieve this, but the two most credible right now (October 2026)
+are Debian and Gentoo, with the latter being slightly out of date. I did briefly try it, but settled on Debian as
+likely having more mature patches and larger repository. The main problem with Debian is that the default kernel/initramfs
+doesn't boot in 128MB of RAM since it is too large, so the first step was a cut down 7.3 kernel. This is mostly stock apart
+from a couple of minor bug fixes and removing many unused drivers. 
+
+Second, a minimal Debian filesystem using debootstrap. The install is a bit atypical - due to my setup, I choose instead
+to image the drive directly by plugging into a USB adapter and using a script to write the partitions and filesystem. This 
+has the option of an A/B boot in case of making mistakes when adjusting things. From there, the filesystem can be updated
+and flipped to the other filesystem, or regular Debian apt/packages can be used. There is a separate updated system. 
+
+The one piece that isn't present in Debian is CDE, this is separarely cross compiled and included as a package. 
+
+Note on disk drives: The default OpenBoot ROM on these systems has problems with drives larger than about 32GB, so you
+probably want to updated. Also, not all SSDs (with an IDE) adapater do DMA - this caused me a lot of grief, so double check 
+things. Worth noting also that on my modern laptop, USB drives appear as /dev/sda, which has traditionally been the main
+disk - just be careful in your selection. 
+
+As things stand, this is more a proof of concept, although it is a fully functional Linux. 
+Comments welcome: contact@radrestoration.com
+
+Finally, although all the technical design is mine, Claude did the heavy lift on cross compile and making update scripts. 
 
 
 <p align="center">
